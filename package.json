@@ -1,0 +1,19 @@
+{
+  "name": "poppy-react-native",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/iSimar/Poppy-React-Native.git"
+  },
+  "author": "Simar Singh (github/isimar)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/iSimar/Poppy-React-Native/issues"
+  },
+  "homepage": "https://github.com/iSimar/Poppy-React-Native#readme"
+}
