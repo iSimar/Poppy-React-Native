@@ -1,9 +1,10 @@
 import React from 'react';
 import { StyleSheet, Text, View, FlatList, ImageBackground } from 'react-native';
-import Poppy from 'poppy-react-native';
+import { PoppyContainer, Poppy } from 'poppy-react-native';
 export default class App extends React.Component {
 
   state = {
+    loading: true,
     listData: [
       {
         id: '0',
@@ -28,33 +29,42 @@ export default class App extends React.Component {
     ]
   }
 
+  componentDidMount(){
+    this.setState({
+      loading: false,
+    });
+  }
+
   renderItem({item}) {
     return(
-      <Poppy key={item.id}>
-        <View style={styles.card}>
+      <Poppy key={item.id} rootRef={this.root} style={styles.card}>
           <ImageBackground style={styles.cardBackgroundImage} 
+                           imageStyle={{ borderRadius: 8 }}
                            source={{uri: item.image}}>
             <View style={styles.cardBackgroundImageContent}>
               <Text style={styles.cardTitleText}>{item.title}</Text>
             </View>
           </ImageBackground>
-        </View>
       </Poppy>
     );
   }
 
   render() {
     return (
-      <View style={styles.container}>
+      <PoppyContainer ref={c => this.root = c} style={styles.container}>
         <View style={styles.header}>
           <Text style={styles.headerText}>Reminders</Text>
         </View>
         <View style={styles.content}>
-          <FlatList data={this.state.listData} 
+          {
+            !this.state.loading ?
+            <FlatList data={this.state.listData} 
                     keyExtractor={(item, index) => item.id}
                     renderItem={this.renderItem.bind(this)} />
+            : null
+          }
         </View>
-      </View>
+      </PoppyContainer>
     );
   }
 }
@@ -83,8 +93,8 @@ const styles = StyleSheet.create({
   card: {
     marginTop: 30,
     borderWidth: 1,
-    borderRadius: 4,
-    borderColor: 'gray',
+    borderRadius: 8,
+    borderColor: 'transparent',
   },
   cardBackgroundImage: {
     flex: 1,
@@ -92,10 +102,13 @@ const styles = StyleSheet.create({
   cardBackgroundImageContent: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.35)',
-    paddingTop: 30,
+    paddingTop: 60,
     paddingBottom: 30,
     paddingLeft: 10,
     paddingRight: 10,
+    borderWidth: 1,
+    borderRadius: 8,
+    borderColor: 'transparent',
   },
   cardTitleText: {
     flex: 1,
