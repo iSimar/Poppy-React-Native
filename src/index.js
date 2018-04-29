@@ -89,9 +89,40 @@ export class Poppy extends Component {
       }
     }
 
+    const childernStyle = {};
+    React.Children.forEach(this.props.children, (child, index) => {
+      if (child.type.displayName === "Text") {
+        childStyle = {};
+        if (child.props.styleTransition) {
+          for (const styleType in child.props.styleTransition){
+            if (child.props.style[styleType]) {
+              childStyle[styleType] = new Animated.Value(child.props.style[styleType]);
+            } else {
+              childStyle[styleType] = new Animated.Value(0);
+            }
+          }
+        }
+        for (const styleType in child.props.style){
+          if (!child.props.styleTransition || !child.props.styleTransition[styleType]) {
+            childStyle[styleType] = child.props.style[styleType];
+          }
+        }
+        childernStyle[index] = childStyle;
+      }
+    });
+
     this.setState({
       style,
-      headerStyle
+      headerStyle,
+      childernStyle
+    });
+  }
+
+  componentWillUnMount(){
+    this.setState({
+      style: null,
+      headerStyle: null,
+      childernStyle: null
     });
   }
 
@@ -112,6 +143,15 @@ export class Poppy extends Component {
             [ this.state.headerStyle[styleType], this.open ? this.props.headerStyleTransition[styleType] : this.props.headerStyle[styleType] ]
           );
         }
+        React.Children.forEach(this.props.children, (child, index) => {
+          if (child.props.styleTransition) {
+            for (styleType in child.props.styleTransition) {
+              animations.push(
+                [ this.state.childernStyle[index][styleType], this.open ? child.props.styleTransition[styleType] : child.props.style[styleType] ]
+              );
+            }
+          }
+        });
         this.props.rootRef.spreadOut(px, py, animations);
 
     });
@@ -119,7 +159,13 @@ export class Poppy extends Component {
 
   renderChildern() {
     return React.Children.toArray(this.props.children).map((child, index) => {
-      return cloneElement(child);
+      if (child.type.displayName === "Text") {
+        child = cloneElement(child, { style: {} });
+        const newChild = <Animated.Text key={index}>{child}</Animated.Text>
+        return cloneElement(newChild, { style: this.state.childernStyle[index] });
+      }
+      return child;
+      
     });
   }
 

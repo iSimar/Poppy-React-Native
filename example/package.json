@@ -3,7 +3,7 @@
   "private": true,
   "dependencies": {
     "expo": "^27.0.1",
-    "poppy-react-native": "^1.0.2",
+    "poppy-react-native": "^1.0.3",
     "react": "16.3.2",
     "react-native": "https://github.com/expo/react-native/archive/sdk-27.0.0.tar.gz"
   }

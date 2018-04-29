@@ -53,7 +53,15 @@ export default class App extends React.Component {
              }}
              headerImage={{uri: item.image}}
              headerImageStyle={{ borderRadius: 8 }}>
-          <Text style={styles.cardTitleText}>{item.title}</Text>
+          <Text style={{
+              fontSize: 20, 
+              color: '#fff',
+            }}
+            styleTransition={{
+              fontSize: 30,
+            }}>
+            {item.title}
+          </Text>
       </Poppy>
     );
   }
@@ -62,7 +70,7 @@ export default class App extends React.Component {
     return (
       <PoppyContainer ref={c => this.root = c} 
                       style={styles.container}
-                      animation='spring'
+                      animation='timing'
                       animationDuration={300}>
         <View style={styles.header}>
           <Text style={styles.headerText}>Reminders</Text>
