@@ -37,21 +37,33 @@ export default class App extends React.Component {
 
   renderItem({item}) {
     return(
-      <Poppy key={item.id} rootRef={this.root} style={styles.card}>
-          <ImageBackground style={styles.cardBackgroundImage} 
-                           imageStyle={{ borderRadius: 8 }}
-                           source={{uri: item.image}}>
-            <View style={styles.cardBackgroundImageContent}>
-              <Text style={styles.cardTitleText}>{item.title}</Text>
-            </View>
-          </ImageBackground>
+      <Poppy key={item.id} 
+             rootRef={this.root} 
+             style={{ marginTop: 30 }}
+             headerStyle={{ paddingTop: 30, 
+                            paddingBottom: 20, 
+                            paddingLeft: 10,
+                            paddingRight: 10,
+                            borderRadius: 8,
+                            backgroundColor: 'rgba(0, 0, 0, 0.35)' }}
+             headerStyleTransition={{ 
+              paddingTop: 60,
+              paddingLeft: 20,
+              paddingBottom: 30,
+             }}
+             headerImage={{uri: item.image}}
+             headerImageStyle={{ borderRadius: 8 }}>
+          <Text style={styles.cardTitleText}>{item.title}</Text>
       </Poppy>
     );
   }
 
   render() {
     return (
-      <PoppyContainer ref={c => this.root = c} style={styles.container}>
+      <PoppyContainer ref={c => this.root = c} 
+                      style={styles.container}
+                      animation='spring'
+                      animationDuration={300}>
         <View style={styles.header}>
           <Text style={styles.headerText}>Reminders</Text>
         </View>
@@ -90,29 +102,9 @@ const styles = StyleSheet.create({
     paddingLeft: 15,
     paddingRight: 15
   },
-  card: {
-    marginTop: 30,
-    borderWidth: 1,
-    borderRadius: 8,
-    borderColor: 'transparent',
-  },
-  cardBackgroundImage: {
-    flex: 1,
-  },
-  cardBackgroundImageContent: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.35)',
-    paddingTop: 60,
-    paddingBottom: 30,
-    paddingLeft: 10,
-    paddingRight: 10,
-    borderWidth: 1,
-    borderRadius: 8,
-    borderColor: 'transparent',
-  },
   cardTitleText: {
     flex: 1,
-    fontSize: 25, 
+    fontSize: 30, 
     color: '#fff',
   }
 });
