@@ -40,7 +40,7 @@ export default class App extends React.Component {
       <Poppy key={item.id} 
              rootRef={this.root} 
              style={{ marginTop: 30 }}
-             headerStyle={{ paddingTop: 30, 
+             headerStyle={{ paddingTop: 20, 
                             paddingBottom: 20, 
                             paddingLeft: 10,
                             paddingRight: 10,
