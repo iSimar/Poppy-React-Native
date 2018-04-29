@@ -9,24 +9,32 @@ export class PoppyContainer extends Component {
     marginTop: new Animated.Value(0)
   }
 
-  createAnimation(a, b) {
-    const duration = this.props.animationDuration ? this.props.animationDuration : 300;
+  createAnimation(a, b, type = null, customDuration) {
+    const duration = customDuration ? customDuration : (this.props.animationDuration ? this.props.animationDuration : 300);
     const toObj = {
       toValue: b,
       duration,
     };
-    if (this.props.animation && this.props.animation === "spring") {
+    if (type && type === "spring") {
       return Animated.spring(a, toObj);
     }
     return Animated.timing(a, toObj);
   }
 
   spreadOut(px, py, animations = []) {
-    animations = animations.map(arr => this.createAnimation(arr[0], arr[1]));
-    const xOffset = this.props.xOffset ? this.props.xOffset : 8;
+    animations = animations.map(arr => {
+      if (arr.length > 3) {
+        return this.createAnimation(arr[0], arr[1], arr[2], arr[3]);
+      }
+      if (arr.length > 2) {
+        return this.createAnimation(arr[0], arr[1], arr[2]);
+      } 
+      return this.createAnimation(arr[0], arr[1]);
+    });
+    const xOffset = this.props.xOffset !== 8 ? this.props.xOffset : 8;
     Animated.parallel([
-      this.createAnimation(this.state.marginLeftRight, -px-xOffset),
-      this.createAnimation(this.state.marginTop, -py-1),
+      this.createAnimation(this.state.marginLeftRight, -px-xOffset, 'timing'),
+      this.createAnimation(this.state.marginTop, -py-1, this.props.animation),
       ...animations
     ]).start(); 
   }
@@ -52,7 +60,7 @@ export class PoppyContainer extends Component {
 export class Poppy extends Component {
 
   state = {
-    marginBottom: new Animated.Value(0)
+    open: false
   }
 
   componentWillMount(){
@@ -91,30 +99,38 @@ export class Poppy extends Component {
 
     const childernStyle = {};
     React.Children.forEach(this.props.children, (child, index) => {
-      if (child.type.displayName === "Text") {
-        childStyle = {};
-        if (child.props.styleTransition) {
-          for (const styleType in child.props.styleTransition){
-            if (child.props.style[styleType]) {
-              childStyle[styleType] = new Animated.Value(child.props.style[styleType]);
-            } else {
-              childStyle[styleType] = new Animated.Value(0);
-            }
+      childStyle = {};
+      if (child.props.styleTransition) {
+        for (const styleType in child.props.styleTransition){
+          if (child.props.style[styleType]) {
+            childStyle[styleType] = new Animated.Value(child.props.style[styleType]);
+          } else {
+            childStyle[styleType] = new Animated.Value(0);
           }
         }
-        for (const styleType in child.props.style){
-          if (!child.props.styleTransition || !child.props.styleTransition[styleType]) {
-            childStyle[styleType] = child.props.style[styleType];
-          }
-        }
-        childernStyle[index] = childStyle;
       }
+      for (const styleType in child.props.style){
+        if (!child.props.styleTransition || !child.props.styleTransition[styleType]) {
+          childStyle[styleType] = child.props.style[styleType];
+        }
+      }
+      if (child.props.showAfterOpen) {
+        childStyle['opacity'] = new Animated.Value(0);
+      }
+      childernStyle[index] = childStyle;
     });
+
+    const contentStyle = {};
+    if (this.props.content && this.props.content.component) {
+      contentStyle['height'] = new Animated.Value(0);
+      contentStyle['opacity'] = new Animated.Value(0);
+    }
 
     this.setState({
       style,
       headerStyle,
-      childernStyle
+      childernStyle,
+      contentStyle
     });
   }
 
@@ -127,33 +143,44 @@ export class Poppy extends Component {
   }
 
   onPress() {
-    this.open = !this.open;
-    this.self.getNode().measure((a, b, width, height, px, py) => {
-        animations = [];
-        animations.push(
-          [ this.state.marginBottom, this.open ? Dimensions.get('window').height - height : 0 ]
-        );
-        for (styleType in this.props.styleTransition) {
-          animations.push(
-            [ this.state.style[styleType], this.open ? this.props.styleTransition[styleType] : this.props.style[styleType] ]
-          );
-        }
-        for (styleType in this.props.headerStyleTransition) {
-          animations.push(
-            [ this.state.headerStyle[styleType], this.open ? this.props.headerStyleTransition[styleType] : this.props.headerStyle[styleType] ]
-          );
-        }
-        React.Children.forEach(this.props.children, (child, index) => {
-          if (child.props.styleTransition) {
-            for (styleType in child.props.styleTransition) {
+    this.setState({
+      open: !this.state.open
+    }, () => {
+      this.self.getNode().measure((a, b, width, height, px, py) => {
+          animations = [];
+          for (styleType in this.props.styleTransition) {
+            animations.push(
+              [ this.state.style[styleType], this.state.open ? this.props.styleTransition[styleType] : this.props.style[styleType] ]
+            );
+          }
+          for (styleType in this.props.headerStyleTransition) {
+            animations.push(
+              [ this.state.headerStyle[styleType], this.state.open ? this.props.headerStyleTransition[styleType] : this.props.headerStyle[styleType] ]
+            );
+          }
+          React.Children.forEach(this.props.children, (child, index) => {
+            if (child.props.styleTransition) {
+              for (styleType in child.props.styleTransition) {
+                animations.push(
+                  [ this.state.childernStyle[index][styleType], this.state.open ? child.props.styleTransition[styleType] : child.props.style[styleType] ]
+                );
+              }
+            }
+            if (child.props.showAfterOpen) {
               animations.push(
-                [ this.state.childernStyle[index][styleType], this.open ? child.props.styleTransition[styleType] : child.props.style[styleType] ]
+                [ this.state.childernStyle[index]['opacity'], this.state.open ? 1 : 0 ]
               );
             }
+          });
+          if (this.props.content && this.props.content.component) {
+            animations.push(
+              [ this.state.contentStyle['height'], this.state.open ? Dimensions.get('window').height - height : 0 ],
+              [ this.state.contentStyle['opacity'], this.state.open ? 1 : 0 ]
+            );
           }
-        });
-        this.props.rootRef.spreadOut(px, py, animations);
+          this.props.rootRef.spreadOut(px, py, animations);
 
+      });
     });
   }
 
@@ -162,19 +189,28 @@ export class Poppy extends Component {
       if (child.type.displayName === "Text") {
         child = cloneElement(child, { style: {} });
         const newChild = <Animated.Text key={index}>{child}</Animated.Text>
-        return cloneElement(newChild, { style: this.state.childernStyle[index] });
+        child = cloneElement(newChild, { style: this.state.childernStyle[index] });
       }
       return child;
-      
     });
+  }
+
+  renderContent() {
+    const xOffset = this.props.rootRef.props.xOffset !== 8 ? this.props.rootRef.props.xOffset : 8;
+    return (
+      <Animated.View style={[{
+        marginLeft: xOffset,
+        marginRight: xOffset
+      }, this.state.contentStyle]}>
+        { this.state.open && this.props.content && this.props.content.component ? React.createElement(this.props.content.component, this.props.content.props ? this.props.content.props : {}) : 0 }
+      </Animated.View>
+    );
   }
 
   render() {
     return (
         <Animated.View ref={c => this.self = c}
-                       style={[{
-                          marginBottom: this.state.marginBottom
-                       }, this.state.style]}>
+                       style={this.state.style}>
             <TouchableWithoutFeedback onPress={this.onPress.bind(this)}>
               {
                 this.props.headerImage ?
@@ -190,6 +226,7 @@ export class Poppy extends Component {
                 : this.renderChildern()
               }   
             </TouchableWithoutFeedback>
+            {this.renderContent()}
         </Animated.View>
     );
   }
